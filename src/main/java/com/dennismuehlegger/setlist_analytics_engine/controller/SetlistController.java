@@ -3,11 +3,9 @@ package com.dennismuehlegger.setlist_analytics_engine.controller;
 
 import com.dennismuehlegger.setlist_analytics_engine.dto.SetlistDTO;
 import com.dennismuehlegger.setlist_analytics_engine.service.SetlistService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -26,6 +24,12 @@ public class SetlistController {
     public ResponseEntity<List<SetlistDTO>> getSetlist(@PathVariable String mbId) {
         List<SetlistDTO> songs = setlistService.getSetlist(mbId);
         return ResponseEntity.ok(songs);
+    }
+
+    @PostMapping("/{mbid}/import")
+    public ResponseEntity<Void> importArtist(@PathVariable String mbid) throws JsonProcessingException {
+        setlistService.importArtist(mbid);
+        return ResponseEntity.ok().build();
     }
 }
 
