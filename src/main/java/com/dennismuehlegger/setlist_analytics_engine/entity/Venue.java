@@ -19,6 +19,7 @@ public class Venue {
     private String name;
 
     private String city;
+
     private String country;
 
     public Venue() {}

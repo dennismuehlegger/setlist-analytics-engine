@@ -15,6 +15,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,6 +95,8 @@ public class SetlistService {
     }
 
     public void parseAndSave(JsonNode response){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
         if (response != null && response.has("setlist")){
             for (JsonNode setlistNode : response.get("setlist")){
                 JsonNode artistNode = setlistNode.path("artist");
@@ -119,7 +123,10 @@ public class SetlistService {
                         .orElseGet(() -> {
                             Setlist newSetlist = new Setlist();
                             newSetlist.setId(setlistNode.path("id").asText());
-                            newSetlist.setEventDate(setlistNode.path("eventDate").asText());
+                            String dateStr = setlistNode.path("eventDate").asText();
+                            if (dateStr != null && !dateStr.isEmpty()) {
+                                newSetlist.setEventDate(LocalDate.parse(dateStr, formatter));
+                            }
                             newSetlist.setTourName(setlistNode.path("tour").path("name").asText());
                             newSetlist.setArtist(artist);
                             newSetlist.setVenue(venue);

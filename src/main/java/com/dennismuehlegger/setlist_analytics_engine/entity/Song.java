@@ -16,7 +16,6 @@ public class Song {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "song_order")
     private int songOrder;
 
     @ManyToOne
