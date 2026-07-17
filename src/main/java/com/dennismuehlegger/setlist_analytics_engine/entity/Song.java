@@ -18,6 +18,8 @@ public class Song {
 
     private int songOrder;
 
+    private Integer durationMs;
+
     @ManyToOne
     @JoinColumn(name = "setlist_id", nullable = false)
     private Setlist setlist;

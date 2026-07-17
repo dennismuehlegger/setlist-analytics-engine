@@ -27,9 +27,14 @@ public class SetlistController {
     }
 
     @PostMapping("/{mbid}/import")
-    public ResponseEntity<Void> importArtist(@PathVariable String mbid) throws JsonProcessingException {
+    public ResponseEntity<Void> importArtist(@PathVariable String mbid) throws JsonProcessingException, InterruptedException {
         setlistService.importArtist(mbid);
         return ResponseEntity.ok().build();
     }
+
+     @GetMapping("/{mbid}/avgsetlist")
+     public ResponseEntity<Void> getAverageSetlistLength(){
+
+     }
 }
 

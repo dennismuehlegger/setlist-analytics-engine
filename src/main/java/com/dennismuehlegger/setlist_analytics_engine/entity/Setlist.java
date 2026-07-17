@@ -21,9 +21,11 @@ public class Setlist {
     private String tourName;
 
     @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "artist_id")
     private Artist artist;
 
     @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "venue_id")
     private Venue venue;
 
     @OneToMany(mappedBy = "setlist", cascade = CascadeType.ALL, orphanRemoval = true)

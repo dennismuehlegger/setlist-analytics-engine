@@ -18,7 +18,9 @@ import org.springframework.web.client.RestClient;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class SetlistService {
@@ -35,12 +37,15 @@ public class SetlistService {
 
     private final VenueRepository venueRepository;
 
-    public SetlistService(RestClient setlistRestClient, ArtistRepository artistRepository, SetlistRepository setlistRepository, SongRepository songRepository, VenueRepository venueRepository) {
+    private final SongService songService;
+
+    public SetlistService(RestClient setlistRestClient, ArtistRepository artistRepository, SetlistRepository setlistRepository, SongRepository songRepository, VenueRepository venueRepository, SongService songService) {
         this.setlistRestClient = setlistRestClient;
         this.artistRepository = artistRepository;
         this.setlistRepository = setlistRepository;
         this.songRepository = songRepository;
         this.venueRepository = venueRepository;
+        this.songService = songService;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -74,7 +79,7 @@ public class SetlistService {
         return songList;
     }
 
-    public void importArtist(String mbid) throws JsonProcessingException {
+    public void importArtist(String mbid) throws JsonProcessingException, InterruptedException {
         String rawJson = retrieveSetlist(mbid);
 
         JsonNode response = objectMapper.readTree(rawJson);
@@ -94,56 +99,95 @@ public class SetlistService {
         }
     }
 
-    public void parseAndSave(JsonNode response){
+    public void parseAndSave(JsonNode response) throws InterruptedException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
-        if (response != null && response.has("setlist")){
-            for (JsonNode setlistNode : response.get("setlist")){
-                JsonNode artistNode = setlistNode.path("artist");
-                Artist artist = artistRepository.findById(artistNode.path("mbid").asText())
-                        .orElseGet(() -> {
-                            Artist newArtist = new Artist();
-                            newArtist.setMbid(artistNode.path("mbid").asText());
-                            newArtist.setName(artistNode.path("name").asText());
-                            return artistRepository.save(newArtist);
-                        });
+        if (response == null || !response.has("setlist")) return;
 
-                JsonNode venueNode = setlistNode.path("venue");
-                Venue venue = venueRepository.findById(venueNode.path("id").asText())
-                        .orElseGet(() -> {
-                            Venue newVenue = new Venue();
-                            newVenue.setId(venueNode.path("id").asText());
-                            newVenue.setName(venueNode.path("name").asText());
-                            newVenue.setCity(venueNode.path("city").path("name").asText());
-                            newVenue.setCountry(venueNode.path("city").path("country").path("name").asText());
-                            return venueRepository.save(newVenue);
-                        });
+        List<Song> songsToSave = new ArrayList<>();
+        List<Setlist> setlistsToSave = new ArrayList<>();
 
-                Setlist setlist = setlistRepository.findById(setlistNode.path("id").asText())
-                        .orElseGet(() -> {
-                            Setlist newSetlist = new Setlist();
-                            newSetlist.setId(setlistNode.path("id").asText());
-                            String dateStr = setlistNode.path("eventDate").asText();
-                            if (dateStr != null && !dateStr.isEmpty()) {
-                                newSetlist.setEventDate(LocalDate.parse(dateStr, formatter));
-                            }
-                            newSetlist.setTourName(setlistNode.path("tour").path("name").asText());
-                            newSetlist.setArtist(artist);
-                            newSetlist.setVenue(venue);
-                            return setlistRepository.save(newSetlist);
-                        });
+        Set<String> processedArtists = new HashSet<>();
+        Set<String> processedVenues = new HashSet<>();
+        
+        String mbid = "";
 
-                for (JsonNode setNode : setlistNode.path("sets").path("set")) {
-                    int order = 1;
-                    for (JsonNode songNode : setNode.path("song")) {
-                        Song song = new Song();
-                        song.setSongOrder(order++);
-                        song.setName(songNode.path("name").asText());
-                        song.setSetlist(setlist);
-                        songRepository.save(song);
-                    }
+        for (JsonNode setlistNode : response.get("setlist")) {
+
+            JsonNode artistNode = setlistNode.path("artist");
+            mbid = artistNode.path("mbid").asText();
+            Artist artist;
+            if (processedArtists.contains(mbid)) {
+                artist = artistRepository.getReferenceById(mbid);
+            } else {
+                String finalMbid = mbid;
+                artist = artistRepository.findById(mbid).orElseGet(() -> {
+                    Artist newArtist = new Artist();
+                    newArtist.setMbid(finalMbid);
+                    newArtist.setName(artistNode.path("name").asText());
+                    return artistRepository.saveAndFlush(newArtist);
+                });
+                processedArtists.add(mbid);
+            }
+
+            JsonNode venueNode = setlistNode.path("venue");
+            String venueId = venueNode.path("id").asText();
+            Venue venue;
+            if (processedVenues.contains(venueId)) {
+                venue = venueRepository.getReferenceById(venueId);
+            } else {
+                venue = venueRepository.findById(venueId).orElseGet(() -> {
+                    Venue newVenue = new Venue();
+                    newVenue.setId(venueId);
+                    newVenue.setName(venueNode.path("name").asText());
+                    newVenue.setCity(venueNode.path("city").path("name").asText());
+                    newVenue.setCountry(venueNode.path("city").path("country").path("name").asText());
+                    return venueRepository.saveAndFlush(newVenue);
+                });
+                processedVenues.add(venueId);
+            }
+
+            String setlistId = setlistNode.path("id").asText();
+            Setlist setlist = setlistRepository.findById(setlistId).orElseGet(() -> {
+                Setlist newSetlist = new Setlist();
+                newSetlist.setId(setlistId);
+                String dateStr = setlistNode.path("eventDate").asText();
+                if (dateStr != null && !dateStr.isEmpty()) {
+                    newSetlist.setEventDate(LocalDate.parse(dateStr, formatter));
+                }
+                newSetlist.setTourName(setlistNode.path("tour").path("name").asText());
+                newSetlist.setArtist(artist);
+                newSetlist.setVenue(venue);
+                return newSetlist;
+            });
+
+            int globalOrder = 1;
+            setlist.getSongs().clear();
+
+            for (JsonNode setNode : setlistNode.path("sets").path("set")) {
+                for (JsonNode songNode : setNode.path("song")) {
+                    Song song = new Song();
+                    song.setSongOrder(globalOrder++);
+                    song.setName(songNode.path("name").asText());
+                    song.setSetlist(setlist);
+
+                    setlist.getSongs().add(song);
+                    songsToSave.add(song);
                 }
             }
+            setlistsToSave.add(setlist);
+        }
+
+        setlistRepository.saveAll(setlistsToSave);
+        songRepository.saveAll(songsToSave);
+        List<String> distinctSongs = songRepository.findUniqueSongNames(mbid);
+
+        for (String songName : distinctSongs) {
+            Integer durationMs = songService.fetchSongDuration(mbid, songName);
+
+            songRepository.updateDurationForSongName(songName, mbid, durationMs);
+
+            Thread.sleep(1000);
         }
     }
 

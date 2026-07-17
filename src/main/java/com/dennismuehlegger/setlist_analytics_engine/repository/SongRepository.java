@@ -22,4 +22,10 @@ public interface SongRepository extends JpaRepository<Song, Long> {
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
+    @Query("SELECT DISTINCT s.name FROM Song s WHERE s.setlist.artist.mbid = :mbid AND s.durationMs IS NULL")
+    List<String> findUniqueSongNames(@Param("mbid") String mbid);
+
+    @Query("UPDATE Song s SET s.durationMs = :duration WHERE s.name = :name AND s.setlist.artistMbid = :mbid")
+    void updateDurationForSongName(@Param("name") String name, @Param("mbid") String mbid, @Param("duration") Integer duration);
 }
