@@ -2,7 +2,9 @@ package com.dennismuehlegger.setlist_analytics_engine.repository;
 
 import com.dennismuehlegger.setlist_analytics_engine.dto.SongDTO;
 import com.dennismuehlegger.setlist_analytics_engine.entity.Song;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -26,6 +28,8 @@ public interface SongRepository extends JpaRepository<Song, Long> {
     @Query("SELECT DISTINCT s.name FROM Song s WHERE s.setlist.artist.mbid = :mbid AND s.durationMs IS NULL")
     List<String> findUniqueSongNames(@Param("mbid") String mbid);
 
-    @Query("UPDATE Song s SET s.durationMs = :duration WHERE s.name = :name AND s.setlist.artistMbid = :mbid")
+    @Modifying
+    @Transactional
+    @Query("UPDATE Song s SET s.durationMs = :duration WHERE s.name = :name AND s.setlist.id = :mbid")
     void updateDurationForSongName(@Param("name") String name, @Param("mbid") String mbid, @Param("duration") Integer duration);
 }

@@ -1,6 +1,7 @@
 package com.dennismuehlegger.setlist_analytics_engine.service;
 
 import com.dennismuehlegger.setlist_analytics_engine.dto.SetlistDTO;
+import com.dennismuehlegger.setlist_analytics_engine.dto.SetlistDurationDTO;
 import com.dennismuehlegger.setlist_analytics_engine.entity.Artist;
 import com.dennismuehlegger.setlist_analytics_engine.entity.Setlist;
 import com.dennismuehlegger.setlist_analytics_engine.entity.Song;
@@ -17,10 +18,7 @@ import org.springframework.web.client.RestClient;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class SetlistService {
@@ -37,7 +35,6 @@ public class SetlistService {
 
     private final VenueRepository venueRepository;
 
-    private final SongService songService;
 
     public SetlistService(RestClient setlistRestClient, ArtistRepository artistRepository, SetlistRepository setlistRepository, SongRepository songRepository, VenueRepository venueRepository, SongService songService) {
         this.setlistRestClient = setlistRestClient;
@@ -45,7 +42,6 @@ public class SetlistService {
         this.setlistRepository = setlistRepository;
         this.songRepository = songRepository;
         this.venueRepository = venueRepository;
-        this.songService = songService;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -79,7 +75,7 @@ public class SetlistService {
         return songList;
     }
 
-    public void importArtist(String mbid) throws JsonProcessingException, InterruptedException {
+    public void importArtist(String mbid) throws JsonProcessingException {
         String rawJson = retrieveSetlist(mbid);
 
         JsonNode response = objectMapper.readTree(rawJson);
@@ -99,7 +95,7 @@ public class SetlistService {
         }
     }
 
-    public void parseAndSave(JsonNode response) throws InterruptedException {
+    public void parseAndSave(JsonNode response){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
         if (response == null || !response.has("setlist")) return;
@@ -180,16 +176,13 @@ public class SetlistService {
 
         setlistRepository.saveAll(setlistsToSave);
         songRepository.saveAll(songsToSave);
-        List<String> distinctSongs = songRepository.findUniqueSongNames(mbid);
-
-        for (String songName : distinctSongs) {
-            Integer durationMs = songService.fetchSongDuration(mbid, songName);
-
-            songRepository.updateDurationForSongName(songName, mbid, durationMs);
-
-            Thread.sleep(1000);
-        }
     }
+
+    /*public SetlistDurationDTO getSetlistLength(String setlistId){
+        Optional<Setlist> setlist = setlistRepository.findById(setlistId);
+
+
+    }*/
 
     public String retrieveSetlist(String mbid){
         return setlistRestClient.get()

@@ -2,6 +2,7 @@ package com.dennismuehlegger.setlist_analytics_engine.controller;
 
 
 import com.dennismuehlegger.setlist_analytics_engine.dto.SetlistDTO;
+import com.dennismuehlegger.setlist_analytics_engine.dto.SetlistDurationDTO;
 import com.dennismuehlegger.setlist_analytics_engine.service.SetlistService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.ResponseEntity;
@@ -26,15 +27,15 @@ public class SetlistController {
         return ResponseEntity.ok(songs);
     }
 
+    /*@GetMapping("/{setlistId}/duration")
+    public ResponseEntity<SetlistDurationDTO> getSetlistLength(@PathVariable String setlistId){
+        SetlistDurationDTO setlistDuration = setlistService.getSetlistLength(setlistId);
+    }*/
+
     @PostMapping("/{mbid}/import")
     public ResponseEntity<Void> importArtist(@PathVariable String mbid) throws JsonProcessingException, InterruptedException {
         setlistService.importArtist(mbid);
         return ResponseEntity.ok().build();
     }
-
-     @GetMapping("/{mbid}/avgsetlist")
-     public ResponseEntity<Void> getAverageSetlistLength(){
-
-     }
 }
 
