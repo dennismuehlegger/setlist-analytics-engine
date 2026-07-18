@@ -21,7 +21,7 @@ public class RestClientConfig {
                 .build();
     }
 
-    @Bean("musicbrainzClient")
+    @Bean("musicBrainzClient")
     public RestClient musicbrainzRestClient() {
         return RestClient.builder()
                 .baseUrl("https://musicbrainz.org/ws/2/recording")

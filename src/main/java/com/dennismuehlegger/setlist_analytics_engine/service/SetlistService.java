@@ -14,6 +14,7 @@ import com.dennismuehlegger.setlist_analytics_engine.repository.VenueRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -37,7 +38,7 @@ public class SetlistService {
     private final VenueRepository venueRepository;
 
 
-    public SetlistService(RestClient setlistRestClient, ArtistRepository artistRepository, SetlistRepository setlistRepository, SongRepository songRepository, VenueRepository venueRepository, SongService songService) {
+    public SetlistService(@Qualifier("setlistClient") RestClient setlistRestClient, ArtistRepository artistRepository, SetlistRepository setlistRepository, SongRepository songRepository, VenueRepository venueRepository, SongService songService) {
         this.setlistRestClient = setlistRestClient;
         this.artistRepository = artistRepository;
         this.setlistRepository = setlistRepository;
@@ -94,6 +95,19 @@ public class SetlistService {
             JsonNode pageNode = objectMapper.readTree(pageJson);
             parseAndSave(pageNode);
         }
+    }
+
+    public SetlistDurationDTO getSetlistLength(String setlistId) {
+        Setlist setlist = setlistRepository.findById(setlistId)
+                .orElseThrow(() -> new SetlistNotFoundException("Setlist not found: " + setlistId));
+        List<Song> songs = setlist.getSongs();
+
+        Integer totalDuration = songs.stream()
+                .filter(s -> s.getDurationMs() != null)
+                .mapToInt(Song::getDurationMs)
+                .sum();
+
+        return new SetlistDurationDTO(setlist.getVenue().getName(), setlist.getEventDate().toString(), totalDuration);
     }
 
     public void parseAndSave(JsonNode response) {
@@ -177,19 +191,6 @@ public class SetlistService {
 
         setlistRepository.saveAll(setlistsToSave);
         songRepository.saveAll(songsToSave);
-    }
-
-    public SetlistDurationDTO getSetlistLength(String setlistId) {
-        Setlist setlist = setlistRepository.findById(setlistId)
-                .orElseThrow(() -> new SetlistNotFoundException("Setlist not found: " + setlistId));
-        List<Song> songs = setlist.getSongs();
-
-        Integer totalDuration = songs.stream()
-                .filter(s -> s.getDurationMs() != null)
-                .mapToInt(Song::getDurationMs)
-                .sum();
-
-        return new SetlistDurationDTO(setlist.getVenue().getName(), setlist.getEventDate().toString(), totalDuration);
     }
 
     public String retrieveSetlist(String mbid) {

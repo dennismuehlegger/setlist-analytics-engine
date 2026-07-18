@@ -9,7 +9,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(SetlistNotFoundException.class)
-    public ResponseEntity<String> handleUserNotFound(SetlistNotFoundException ex) {
+    public ResponseEntity<String> handleSetlistNotFound(SetlistNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(ArtistNotFoundException.class)
+    public ResponseEntity<String> handleArtistNotFound(ArtistNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 }
