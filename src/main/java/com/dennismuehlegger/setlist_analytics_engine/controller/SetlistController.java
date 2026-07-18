@@ -27,10 +27,11 @@ public class SetlistController {
         return ResponseEntity.ok(songs);
     }
 
-    /*@GetMapping("/{setlistId}/duration")
+    @GetMapping("/{setlistId}/duration")
     public ResponseEntity<SetlistDurationDTO> getSetlistLength(@PathVariable String setlistId){
         SetlistDurationDTO setlistDuration = setlistService.getSetlistLength(setlistId);
-    }*/
+        return ResponseEntity.ok(setlistDuration);
+    }
 
     @PostMapping("/{mbid}/import")
     public ResponseEntity<Void> importArtist(@PathVariable String mbid) throws JsonProcessingException, InterruptedException {

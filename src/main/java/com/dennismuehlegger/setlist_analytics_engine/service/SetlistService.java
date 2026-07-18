@@ -6,6 +6,7 @@ import com.dennismuehlegger.setlist_analytics_engine.entity.Artist;
 import com.dennismuehlegger.setlist_analytics_engine.entity.Setlist;
 import com.dennismuehlegger.setlist_analytics_engine.entity.Song;
 import com.dennismuehlegger.setlist_analytics_engine.entity.Venue;
+import com.dennismuehlegger.setlist_analytics_engine.exception.SetlistNotFoundException;
 import com.dennismuehlegger.setlist_analytics_engine.repository.ArtistRepository;
 import com.dennismuehlegger.setlist_analytics_engine.repository.SetlistRepository;
 import com.dennismuehlegger.setlist_analytics_engine.repository.SongRepository;
@@ -95,7 +96,7 @@ public class SetlistService {
         }
     }
 
-    public void parseAndSave(JsonNode response){
+    public void parseAndSave(JsonNode response) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
         if (response == null || !response.has("setlist")) return;
@@ -105,7 +106,7 @@ public class SetlistService {
 
         Set<String> processedArtists = new HashSet<>();
         Set<String> processedVenues = new HashSet<>();
-        
+
         String mbid = "";
 
         for (JsonNode setlistNode : response.get("setlist")) {
@@ -178,13 +179,20 @@ public class SetlistService {
         songRepository.saveAll(songsToSave);
     }
 
-    /*public SetlistDurationDTO getSetlistLength(String setlistId){
-        Optional<Setlist> setlist = setlistRepository.findById(setlistId);
+    public SetlistDurationDTO getSetlistLength(String setlistId) {
+        Setlist setlist = setlistRepository.findById(setlistId)
+                .orElseThrow(() -> new SetlistNotFoundException("Setlist not found: " + setlistId));
+        List<Song> songs = setlist.getSongs();
 
+        Integer totalDuration = songs.stream()
+                .filter(s -> s.getDurationMs() != null)
+                .mapToInt(Song::getDurationMs)
+                .sum();
 
-    }*/
+        return new SetlistDurationDTO(setlist.getVenue().getName(), setlist.getEventDate().toString(), totalDuration);
+    }
 
-    public String retrieveSetlist(String mbid){
+    public String retrieveSetlist(String mbid) {
         return setlistRestClient.get()
                 .uri("/artist/{mbid}/setlists", mbid)
                 .retrieve()
