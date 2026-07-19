@@ -8,7 +8,9 @@ import lombok.Setter;
 public class SetlistDTO {
 
     private String songName;
+
     private String eventDate;
+
     private String venueName;
 
     public SetlistDTO(String songName, String eventDate, String venueName) {

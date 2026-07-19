@@ -19,7 +19,7 @@ public interface SongRepository extends JpaRepository<Song, Long> {
             "AND sl.eventDate BETWEEN :startDate AND :endDate " +
             "GROUP BY s.name " +
             "ORDER BY COUNT(s) DESC")
-    List<SongDTO> findMostPlayedSongs(
+    List<SongDTO> findTopSongs(
             @Param("mbid") String mbid,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate

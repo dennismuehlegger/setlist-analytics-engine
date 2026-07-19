@@ -3,7 +3,6 @@ package com.dennismuehlegger.setlist_analytics_engine.controller;
 
 import com.dennismuehlegger.setlist_analytics_engine.dto.SetlistDTO;
 import com.dennismuehlegger.setlist_analytics_engine.dto.SetlistDurationDTO;
-import com.dennismuehlegger.setlist_analytics_engine.service.MusicBrainzService;
 import com.dennismuehlegger.setlist_analytics_engine.service.SetlistService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.ResponseEntity;
@@ -18,16 +17,13 @@ public class SetlistController {
 
     private final SetlistService setlistService;
 
-    private final MusicBrainzService musicBrainzService;
-
-    public SetlistController(SetlistService setlistService, MusicBrainzService musicBrainzService) {
+    public SetlistController(SetlistService setlistService) {
         this.setlistService = setlistService;
-        this.musicBrainzService = musicBrainzService;
     }
 
-    @GetMapping("{mbId}/songs")
-    public ResponseEntity<List<SetlistDTO>> getSetlist(@PathVariable String mbId) {
-        List<SetlistDTO> songs = setlistService.getSetlist(mbId);
+    @GetMapping("{mbid}/songs")
+    public ResponseEntity<List<SetlistDTO>> getSetlist(@PathVariable String mbid) {
+        List<SetlistDTO> songs = setlistService.getSetlist(mbid);
         return ResponseEntity.ok(songs);
     }
 
@@ -37,9 +33,9 @@ public class SetlistController {
         return ResponseEntity.ok(setlistDuration);
     }
 
-    @PostMapping("/{mbId}/import")
-    public ResponseEntity<Void> importArtist(@PathVariable String mbId) throws JsonProcessingException {
-        setlistService.importArtist(mbId);
+    @PostMapping("/{mbid}/import")
+    public ResponseEntity<Void> importArtist(@PathVariable String mbid) throws JsonProcessingException, InterruptedException {
+        setlistService.importArtist(mbid);
         return ResponseEntity.ok().build();
     }
 }

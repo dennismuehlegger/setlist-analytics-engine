@@ -12,13 +12,13 @@ import java.util.List;
 @RequestMapping("/api/setlist")
 public class SongController {
 
-    private SongService songService;
+    private final SongService songService;
 
     public SongController(SongService songService) {
         this.songService = songService;
     }
 
-    @GetMapping("/artist/{mbid}/topsongs")
+    @GetMapping("/artist/{mbid}/top-songs")
     public ResponseEntity<List<SongDTO>> getTopSongs(
             @PathVariable String mbid,
             @RequestParam("start") String startStr,
@@ -27,8 +27,16 @@ public class SongController {
         LocalDate startDate = LocalDate.parse(startStr);
         LocalDate endDate = LocalDate.parse(endStr);
 
-        List<SongDTO> topSongs = songService.getMostPlayedSongs(mbid, startDate, endDate);
+        List<SongDTO> topSongs = songService.getTopSongs(mbid, startDate, endDate);
         return ResponseEntity.ok(topSongs);
+    }
+
+    @GetMapping("/artist/{mbid}/top-song")
+    public ResponseEntity<SongDTO> getTopSong(
+            @PathVariable String mbid,
+            @RequestParam("year") Integer year) {
+        SongDTO topSong = songService.getTopSong(mbid, year);
+        return ResponseEntity.ok(topSong);
     }
 
 }

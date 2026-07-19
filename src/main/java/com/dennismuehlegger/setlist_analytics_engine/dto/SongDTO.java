@@ -8,9 +8,10 @@ import lombok.Setter;
 public class SongDTO {
 
     private String songName;
-    private Long playCount;
 
-    public SongDTO(String songName, Long playCount) {
+    private Integer playCount;
+
+    public SongDTO(String songName, Integer playCount) {
         this.songName = songName;
         this.playCount = playCount;
     }

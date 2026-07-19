@@ -34,9 +34,9 @@ public class MusicBrainzService {
         this.objectMapper = new ObjectMapper();
     }
 
-    public void loadSongDuration(String mbId) throws InterruptedException {
-        Artist artist = artistRepository.findById(mbId)
-                .orElseThrow(() -> new ArtistNotFoundException("Artist not found: " + mbId));
+    public void loadSongDuration(String mbid) throws InterruptedException {
+        Artist artist = artistRepository.findById(mbid)
+                .orElseThrow(() -> new ArtistNotFoundException("Artist not found: " + mbid));
 
         List<Setlist> setlist = artist.getSetlists();
         Set<String> uniqueSongs = new HashSet<>();
@@ -51,18 +51,18 @@ public class MusicBrainzService {
         }
 
         for (String song : uniqueSongs) {
-            songRepository.updateDurationForSongName(song, mbId, fetchSongDuration(mbId, song));
+            songRepository.updateDurationForSongName(song, mbid, fetchSongDuration(mbid, song));
             Thread.sleep(2000);
         }
     }
 
-    public Integer fetchSongDuration(String mbId, String songName){
+    private Integer fetchSongDuration(String mbid, String songName){
         try {
             String rawResponse = musicBrainzClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path("")
                             .queryParam("fmt", "json")
-                            .queryParam("query", "arid:" + mbId + " AND recording:\"" + songName + "\"")
+                            .queryParam("query", "arid:" + mbid + " AND recording:\"" + songName + "\"")
                             .build())
                     .retrieve()
                     .body(String.class);

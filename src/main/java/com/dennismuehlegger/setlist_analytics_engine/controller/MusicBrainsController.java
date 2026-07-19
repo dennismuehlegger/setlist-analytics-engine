@@ -1,6 +1,5 @@
 package com.dennismuehlegger.setlist_analytics_engine.controller;
 
-import com.dennismuehlegger.setlist_analytics_engine.dto.SetlistDurationDTO;
 import com.dennismuehlegger.setlist_analytics_engine.service.MusicBrainzService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +15,9 @@ public class MusicBrainsController {
         this.musicBrainzService = musicBrainzService;
     }
 
-    @PostMapping("/{mbId}/importDuration")
-    public ResponseEntity<Void> importSongDuration(@PathVariable String mbId) throws InterruptedException {
-        musicBrainzService.loadSongDuration(mbId);
+    @PostMapping("/{mbid}/import-duration")
+    public ResponseEntity<Void> importSongDuration(@PathVariable String mbid) throws InterruptedException {
+        musicBrainzService.loadSongDuration(mbid);
         return ResponseEntity.ok().build();
     }
 

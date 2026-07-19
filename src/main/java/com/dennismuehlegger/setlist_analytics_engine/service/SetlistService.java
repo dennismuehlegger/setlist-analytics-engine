@@ -77,7 +77,7 @@ public class SetlistService {
         return songList;
     }
 
-    public void importArtist(String mbid) throws JsonProcessingException {
+    public void importArtist(String mbid) throws JsonProcessingException, InterruptedException {
         String rawJson = retrieveSetlist(mbid);
 
         JsonNode response = objectMapper.readTree(rawJson);
@@ -110,7 +110,8 @@ public class SetlistService {
         return new SetlistDurationDTO(setlist.getVenue().getName(), setlist.getEventDate().toString(), totalDuration);
     }
 
-    public void parseAndSave(JsonNode response) {
+    private void parseAndSave(JsonNode response) throws InterruptedException {
+        Thread.sleep(1000);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
         if (response == null || !response.has("setlist")) return;
@@ -158,7 +159,9 @@ public class SetlistService {
                 processedVenues.add(venueId);
             }
 
+
             String setlistId = setlistNode.path("id").asText();
+            boolean isNew = setlistRepository.findById(setlistId).isEmpty();
             Setlist setlist = setlistRepository.findById(setlistId).orElseGet(() -> {
                 Setlist newSetlist = new Setlist();
                 newSetlist.setId(setlistId);
@@ -172,25 +175,28 @@ public class SetlistService {
                 return newSetlist;
             });
 
-            int globalOrder = 1;
-            setlist.getSongs().clear();
+            if (isNew) {
+                int globalOrder = 1;
+                setlist.getSongs().clear();
 
-            for (JsonNode setNode : setlistNode.path("sets").path("set")) {
-                for (JsonNode songNode : setNode.path("song")) {
-                    Song song = new Song();
-                    song.setSongOrder(globalOrder++);
-                    song.setName(songNode.path("name").asText());
-                    song.setSetlist(setlist);
+                for (JsonNode setNode : setlistNode.path("sets").path("set")) {
+                    for (JsonNode songNode : setNode.path("song")) {
+                        Song song = new Song();
+                        song.setSongOrder(globalOrder++);
+                        song.setName(songNode.path("name").asText());
+                        song.setSetlist(setlist);
 
-                    setlist.getSongs().add(song);
-                    songsToSave.add(song);
+                        setlist.getSongs().add(song);
+                        songsToSave.add(song);
+                    }
                 }
+                setlistsToSave.add(setlist);
             }
-            setlistsToSave.add(setlist);
+
+            setlistRepository.saveAll(setlistsToSave);
+            songRepository.saveAll(songsToSave);
         }
 
-        setlistRepository.saveAll(setlistsToSave);
-        songRepository.saveAll(songsToSave);
     }
 
     public String retrieveSetlist(String mbid) {

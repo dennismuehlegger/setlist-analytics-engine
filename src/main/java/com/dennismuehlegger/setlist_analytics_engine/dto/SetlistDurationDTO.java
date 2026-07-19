@@ -7,11 +7,11 @@ import lombok.Setter;
 @Setter
 public class SetlistDurationDTO {
 
-    String venueName;
+    private String venueName;
 
-    String eventDate;
+    private String eventDate;
 
-    Integer setlistDuration;
+    private Integer setlistDuration;
 
     public SetlistDurationDTO(String venueName, String eventDate, Integer setlistDuration) {
         this.venueName = venueName;
