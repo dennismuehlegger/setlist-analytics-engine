@@ -38,7 +38,7 @@ public class SongService {
     public SongDTO getTopSong(String mbid, Integer year){
         List<Setlist> allSetlists = setlistRepository.findArtistByMbid(mbid);
         List<Setlist> filteredSetlists = new ArrayList<>();
-        Map<String, Integer> countSongOccurrence = new HashMap<>();
+        Map<String, Integer> countSongOccurrences = new HashMap<>();
 
         for (Setlist setlist : allSetlists) {
             if (setlist.getEventDate().getYear() == year) {
@@ -50,12 +50,11 @@ public class SongService {
             List<Song> songList = filteredSetlist.getSongs();
             for (Song song : songList) {
                 String songName = song.getName();
-                countSongOccurrence.put(songName, countSongOccurrence.getOrDefault(songName, 0) + 1);
+                countSongOccurrences.put(songName, countSongOccurrences.getOrDefault(songName, 0) + 1);
             }
         }
-        System.out.println("Total setlists: " + allSetlists.size());
-        System.out.println("Filtered setlists for year " + year + ": " + filteredSetlists.size());
-        Map.Entry<String, Integer> topSong = countSongOccurrence.entrySet().stream().max(Map.Entry.comparingByValue())
+
+        Map.Entry<String, Integer> topSong = countSongOccurrences.entrySet().stream().max(Map.Entry.comparingByValue())
                 .orElseThrow(() -> new SetlistDataNotFoundException("No setlist data available"));
 
         return new SongDTO(topSong.getKey(), topSong.getValue());
