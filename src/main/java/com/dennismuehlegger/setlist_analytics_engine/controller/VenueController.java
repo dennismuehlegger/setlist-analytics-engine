@@ -1,6 +1,7 @@
 package com.dennismuehlegger.setlist_analytics_engine.controller;
 
-import com.dennismuehlegger.setlist_analytics_engine.dto.VenueDTO;
+import com.dennismuehlegger.setlist_analytics_engine.dto.VenueAvgSetlistLengthDTO;
+import com.dennismuehlegger.setlist_analytics_engine.dto.VenuePlayCountStatsDTO;
 import com.dennismuehlegger.setlist_analytics_engine.service.VenueService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +20,16 @@ public class VenueController {
     }
 
     @GetMapping("artist/{mbid}/top-venues")
-    public ResponseEntity<List<VenueDTO>> getTopVenue(@PathVariable String mbid) {
+    public ResponseEntity<List<VenuePlayCountStatsDTO>> getTopVenue(@PathVariable String mbid) {
 
-        List<VenueDTO> topVenues = venueService.getTopVenues(mbid);
+        List<VenuePlayCountStatsDTO> topVenues = venueService.getTopVenues(mbid);
         return ResponseEntity.ok(topVenues);
+    }
+
+    @GetMapping("/{venueid}/avg-length-per-venue")
+    public ResponseEntity<VenueAvgSetlistLengthDTO> getAvgSetlistLengthPerVenue(@PathVariable String venueid) {
+
+        VenueAvgSetlistLengthDTO venueSetlistLength = venueService.getAvgSetlistLengthPerVenue(venueid);
+        return ResponseEntity.ok(venueSetlistLength);
     }
 }

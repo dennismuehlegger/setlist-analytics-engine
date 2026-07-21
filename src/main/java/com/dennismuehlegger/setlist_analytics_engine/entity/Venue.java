@@ -1,11 +1,10 @@
 package com.dennismuehlegger.setlist_analytics_engine.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -21,6 +20,9 @@ public class Venue {
     private String city;
 
     private String country;
+
+    @OneToMany(mappedBy = "venue")
+    private List<Setlist> setlists;
 
     public Venue() {}
 }

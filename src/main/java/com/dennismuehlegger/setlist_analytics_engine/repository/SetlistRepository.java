@@ -10,5 +10,8 @@ import java.util.List;
 public interface SetlistRepository extends JpaRepository<Setlist, String> {
 
     @Query("SELECT s FROM Setlist s WHERE s.artist.mbid = :mbid")
-    List<Setlist> findArtistByMbid(@Param("mbid") String mbid);
+    List<Setlist> findByMbid(@Param("mbid") String mbid);
+
+    @Query("SELECT s FROM Setlist s WHERE s.venue.id = :venueId")
+    List<Setlist> findByVenueId(@Param("venueId") String venueId);
 }

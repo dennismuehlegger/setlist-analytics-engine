@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class VenueDTO {
+public class VenuePlayCountStatsDTO {
 
     private String venueName;
 
@@ -15,7 +15,7 @@ public class VenueDTO {
 
     private Integer playCount;
 
-    public VenueDTO(String venueName, String cityName, String countryName, Integer playCount) {
+    public VenuePlayCountStatsDTO(String venueName, String cityName, String countryName, Integer playCount) {
         this.venueName = venueName;
         this.cityName = cityName;
         this.countryName = countryName;

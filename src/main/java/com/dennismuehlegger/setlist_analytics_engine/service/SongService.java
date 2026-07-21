@@ -36,7 +36,7 @@ public class SongService {
     }
 
     public SongDTO getTopSong(String mbid, Integer year){
-        List<Setlist> allSetlists = setlistRepository.findArtistByMbid(mbid);
+        List<Setlist> allSetlists = setlistRepository.findByMbid(mbid);
         List<Setlist> filteredSetlists = new ArrayList<>();
         Map<String, Integer> countSongOccurrences = new HashMap<>();
 
