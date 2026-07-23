@@ -1,9 +1,11 @@
 package com.dennismuehlegger.setlist_analytics_engine.service;
 
 import com.dennismuehlegger.setlist_analytics_engine.dto.SongDTO;
+import com.dennismuehlegger.setlist_analytics_engine.dto.SongRarityDTO;
 import com.dennismuehlegger.setlist_analytics_engine.entity.Setlist;
 import com.dennismuehlegger.setlist_analytics_engine.entity.Song;
 import com.dennismuehlegger.setlist_analytics_engine.exception.SetlistDataNotFoundException;
+import com.dennismuehlegger.setlist_analytics_engine.exception.SetlistNotFoundException;
 import com.dennismuehlegger.setlist_analytics_engine.repository.SetlistRepository;
 import com.dennismuehlegger.setlist_analytics_engine.repository.SongRepository;
 import org.springframework.stereotype.Service;
@@ -58,5 +60,38 @@ public class SongService {
                 .orElseThrow(() -> new SetlistDataNotFoundException("No setlist data available"));
 
         return new SongDTO(topSong.getKey(), topSong.getValue());
+    }
+
+    public List<SongRarityDTO> getSongRarity(String mbid, Integer year){
+        List<Setlist> allSetlists = setlistRepository.findByMbid(mbid);
+        List<Setlist> targetSetlists = (year != null)
+                ? allSetlists.stream().filter(s -> s.getEventDate().getYear() == year).toList()
+                : allSetlists;
+        Map<String, Integer> countSongOccurrences = new HashMap<>();
+
+        if (targetSetlists.isEmpty()){
+            throw new SetlistNotFoundException("No setlists found");
+        }
+
+        int totalSetlistCount;
+
+            for (Setlist setlist : targetSetlists) {
+                List<Song> songList = setlist.getSongs();
+                for (Song song : songList) {
+                    String songName = song.getName();
+                    if (songName != null && !songName.isBlank()){
+                        countSongOccurrences.put(songName, countSongOccurrences.getOrDefault(songName, 0) + 1);
+                    }
+                }
+            }
+            totalSetlistCount = targetSetlists.size();
+
+
+        return countSongOccurrences.entrySet().stream().map(entry -> {
+            int songCount = entry.getValue();
+            double rawPercentage = (songCount / (double) totalSetlistCount) * 100.0;
+            double rarityPercentage = Math.round(rawPercentage * 100.0) / 100.0;
+            return new SongRarityDTO(entry.getKey(), songCount, totalSetlistCount, rarityPercentage);
+        }).sorted(Comparator.comparingDouble(SongRarityDTO::getRarityPercentage)).toList();
     }
 }

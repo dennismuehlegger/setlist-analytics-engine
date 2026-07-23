@@ -110,6 +110,7 @@ public class SetlistService {
         return new SetlistDurationDTO(setlist.getVenue().getName(), setlist.getEventDate().toString(), totalDuration);
     }
 
+    // todo - songs from tape/walk on need to be removed?
     private void parseAndSave(JsonNode response) throws InterruptedException {
         Thread.sleep(1000);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");

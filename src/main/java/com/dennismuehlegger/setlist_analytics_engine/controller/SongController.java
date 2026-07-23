@@ -1,6 +1,7 @@
 package com.dennismuehlegger.setlist_analytics_engine.controller;
 
 import com.dennismuehlegger.setlist_analytics_engine.dto.SongDTO;
+import com.dennismuehlegger.setlist_analytics_engine.dto.SongRarityDTO;
 import com.dennismuehlegger.setlist_analytics_engine.service.SongService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,14 @@ public class SongController {
             @PathVariable String mbid,
             @RequestParam("year") Integer year) {
         SongDTO topSong = songService.getTopSong(mbid, year);
+        return ResponseEntity.ok(topSong);
+    }
+
+    @GetMapping("/artist/{mbid}/song-rarity")
+    public ResponseEntity<List<SongRarityDTO>> getSongRarity(
+            @PathVariable String mbid,
+            @RequestParam(value = "year", required = false) Integer year) {
+        List<SongRarityDTO> topSong = songService.getSongRarity(mbid, year);
         return ResponseEntity.ok(topSong);
     }
 
